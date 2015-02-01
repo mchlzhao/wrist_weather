@@ -51,8 +51,12 @@ function textCard(text, position, size, relativePosition) {
 
 navigator.geolocation.getCurrentPosition(
   function (pos) {
-    localStorage.setItem('lat', pos.coords.latitude);
-    localStorage.setItem('lon', pos.coords.longitude);
+    if (localStorage.lat === undefined || localStorage.lon === undefined) {
+      localStorage.setItem('lat', pos.coords.latitude);
+      localStorage.setItem('lon', pos.coords.longitude);
+    }
+    console.log('Lat: ' + pos.coords.latitude + ' | Lon: ' + pos.coords.longitude);
+    hasMoved(pos.coords.latitude, pos.coords.longitude, 4);
     fetchAddress();
   },
   function (err) {
@@ -65,6 +69,15 @@ navigator.geolocation.getCurrentPosition(
     timeout: 10000
   }
 );
+
+function hasMoved(latNew, lonNew, accuracy) {
+  console.log('STORAGE Lat: ' + localStorage.lat + ' | Lon: ' + localStorage.lon);
+  if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - latNew.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - lonNew.toFixed(accuracy)) > 0) {
+    console.log(Math.abs(Number(localStorage.lat).toFixed(accuracy) - latNew.toFixed(accuracy)) + ' | ' + Math.abs(Number(localStorage.lon).toFixed(accuracy) - lonNew.toFixed(accuracy)));
+    localStorage.lat = latNew;
+    localStorage.lon = lonNew;
+  }
+}
 
 function fetchAddress() {
   ajax(
