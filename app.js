@@ -10,6 +10,10 @@ var Accel = require('ui/accel');
 var ajax = require('ajax');
 Accel.init();
 
+var FETCHDELAY = 1800000;
+
+var tempLat, tempLon;
+var moved = true;
 var textShowing = 0;
 
 var mainWindow = new UI.Window({
@@ -51,12 +55,18 @@ function textCard(text, position, size, relativePosition) {
 
 navigator.geolocation.getCurrentPosition(
   function (pos) {
-    if (localStorage.lat === undefined || localStorage.lon === undefined) {
-      localStorage.setItem('lat', pos.coords.latitude);
-      localStorage.setItem('lon', pos.coords.longitude);
+    tempLat = pos.coords.latitude;
+    tempLon = pos.coords.longitude;
+    console.log('1: Lat: ' + localStorage.lat + ' Lon: ' + localStorage.lon);
+    if (localStorage.lat !== undefined && localStorage.lon !== undefined) {
+      console.log('11111111');
+      moved = hasMoved(pos.coords.latitude, pos.coords.longitude, 4);
+    } else {
+      console.log('Lat Lon not in Local Storage');
+      localStorage.lat = tempLat;
+      localStorage.lon = tempLon;
     }
-    console.log('Lat: ' + pos.coords.latitude + ' | Lon: ' + pos.coords.longitude);
-    hasMoved(pos.coords.latitude, pos.coords.longitude, 4);
+    
     fetchAddress();
   },
   function (err) {
@@ -70,46 +80,62 @@ navigator.geolocation.getCurrentPosition(
   }
 );
 
-function hasMoved(latNew, lonNew, accuracy) {
-  console.log('STORAGE Lat: ' + localStorage.lat + ' | Lon: ' + localStorage.lon);
-  if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - latNew.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - lonNew.toFixed(accuracy)) > 0) {
-    console.log(Math.abs(Number(localStorage.lat).toFixed(accuracy) - latNew.toFixed(accuracy)) + ' | ' + Math.abs(Number(localStorage.lon).toFixed(accuracy) - lonNew.toFixed(accuracy)));
-    localStorage.lat = latNew;
-    localStorage.lon = lonNew;
+function hasMoved(latNow, lonNow, accuracy) {
+  if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - latNow.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - lonNow.toFixed(accuracy)) > 0) {
+    console.log('Moved');
+    localStorage.lat = tempLat;
+    localStorage.lon = tempLon;
+    return true;
   }
+  console.log('22222222222');
+  return false;
 }
 
 function fetchAddress() {
-  ajax(
-    {
-      url: 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + localStorage.getItem('lat') + ',' + localStorage.getItem('lon'),
-      type: 'json'
-    },
-    function (data) {
-      localStorage.setItem('address', parseAddress(data));
-      fetchWeather();
-    },
-    function (error) {
-      console.log('Fetch address failed: ' + error);
-    }
-  );
+  console.log('2: Lat: ' + localStorage.lat + ' Lon: ' + localStorage.lon);
+  if (moved) {
+    ajax(
+      {
+        url: 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + localStorage.lat + ',' + localStorage.lon,
+        type: 'json'
+      },
+      function (data) {
+        console.log(data);
+        localStorage.suburb = parseAddress(data);
+        fetchWeather();
+      },
+      function (error) {
+        console.log('Fetch address failed: ' + error);
+      }
+    );
+  } else {
+    fetchWeather();
+  }
 }
 
 function fetchWeather() {
-  ajax(
-    {
-      url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.getItem('lat') + ',' + localStorage.getItem('lon') + '?units=auto',
-      type: 'json'
-    },
-    function (data) {
-      console.log('Temp: ' + data.currently.temperature);
-      localStorage.setItem('weather', JSON.stringify(data));
-      main();
-    },
-    function (error) {
-      console.log('Weather download failed: ' + error);
-    }
-  );
+  var currentTime = (new Date()).getTime();
+  
+  if (moved || localStorage.lastFetch === undefined || currentTime - localStorage.lastFetch > FETCHDELAY) {
+    ajax(
+      {
+        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto',
+        type: 'json'
+      },
+      function (data) {
+        console.log('Temp: ' + data.currently.temperature);
+        localStorage.weather = JSON.stringify(data);
+        localStorage.lastFetch = currentTime;
+        main();
+      },
+      function (error) {
+        console.log('Weather download failed: ' + error);
+      }
+    );
+  } else {
+    console.log('Fetched recently or hasn\'t moved');
+    main();
+  }
 }
 
 function parseAddress(data) {
@@ -131,7 +157,7 @@ function main() {
   
   var cards = [];
   
-  var weatherCard = new textCard(localStorage.getItem('address') + '\n' + Math.round(JSON.parse(localStorage.getItem('weather')).currently.temperature), new Vector2(20, 20), new Vector2(104, 128), 'center');
+  var weatherCard = new textCard(localStorage.suburb + '\n' + Math.round(JSON.parse(localStorage.weather).currently.temperature), new Vector2(20, 20), new Vector2(104, 128), 'center');
   
   console.log(weatherCard);
   
