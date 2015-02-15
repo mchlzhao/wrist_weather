@@ -11,9 +11,10 @@ var ajax = require('ajax');
 Accel.init();
 
 var FETCHDELAY = 1800000;
+var MOVELIMIT = 4;
 
-var tempLat, tempLon;
 var moved = true;
+
 var textShowing = 0;
 
 var mainWindow = new UI.Window({
@@ -53,20 +54,27 @@ function textCard(text, position, size, relativePosition) {
   };
 }
 
+function hasMoved(coords, accuracy) {
+  if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - coords.latitude.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - coords.longitude.toFixed(accuracy)) > 0) {
+    console.log('Moved');
+    localStorage.lat = coords.latitude;
+    localStorage.lon = coords.longitude;
+    return true;
+  }
+  console.log('22222222222');
+  return false;
+}
+
 navigator.geolocation.getCurrentPosition(
   function (pos) {
-    tempLat = pos.coords.latitude;
-    tempLon = pos.coords.longitude;
-    console.log('1: Lat: ' + localStorage.lat + ' Lon: ' + localStorage.lon);
     if (localStorage.lat !== undefined && localStorage.lon !== undefined) {
       console.log('11111111');
-      moved = hasMoved(pos.coords.latitude, pos.coords.longitude, 4);
+      moved = hasMoved(pos.coords, MOVELIMIT);
     } else {
       console.log('Lat Lon not in Local Storage');
-      localStorage.lat = tempLat;
-      localStorage.lon = tempLon;
+      localStorage.lat = pos.coords.latitude;
+      localStorage.lon = pos.coords.longitude;
     }
-    
     fetchAddress();
   },
   function (err) {
@@ -75,24 +83,12 @@ navigator.geolocation.getCurrentPosition(
   },
   {
     enableHighAccuracy: true,
-    maximumAge: 10000,
-    timeout: 10000
+    maximumAge: 60000,
+    timeout: 5000
   }
 );
 
-function hasMoved(latNow, lonNow, accuracy) {
-  if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - latNow.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - lonNow.toFixed(accuracy)) > 0) {
-    console.log('Moved');
-    localStorage.lat = tempLat;
-    localStorage.lon = tempLon;
-    return true;
-  }
-  console.log('22222222222');
-  return false;
-}
-
 function fetchAddress() {
-  console.log('2: Lat: ' + localStorage.lat + ' Lon: ' + localStorage.lon);
   if (moved) {
     ajax(
       {
@@ -100,8 +96,14 @@ function fetchAddress() {
         type: 'json'
       },
       function (data) {
-        console.log(data);
-        localStorage.suburb = parseAddress(data);
+        localStorage.suburb = (function () {
+          var addressComponents = data.results[0].address_components;
+          for (var i in addressComponents) {
+            if (addressComponents[i].types[0] === 'locality') {
+              return addressComponents[i].short_name;
+            }
+          }
+        })();
         fetchWeather();
       },
       function (error) {
@@ -119,11 +121,10 @@ function fetchWeather() {
   if (moved || localStorage.lastFetch === undefined || currentTime - localStorage.lastFetch > FETCHDELAY) {
     ajax(
       {
-        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto',
+        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=hourly,minutely,flags',
         type: 'json'
       },
       function (data) {
-        console.log('Temp: ' + data.currently.temperature);
         localStorage.weather = JSON.stringify(data);
         localStorage.lastFetch = currentTime;
         main();
@@ -138,15 +139,6 @@ function fetchWeather() {
   }
 }
 
-function parseAddress(data) {
-  var addressComponents = data.results[0].address_components;
-  for (var i in addressComponents) {
-    if (addressComponents[i].types[0] === 'locality') {
-      return addressComponents[i].short_name;
-    }
-  }
-}
-
 function main() {
   var background = new UI.Rect({
     position: new Vector2(0, 0),
@@ -155,11 +147,20 @@ function main() {
   });
   mainWindow.add(background);
   
+  var sunny = new UI.Image({
+    position: new UI.Vector2(19, 19),
+    size: new UI.Vector2(106, 106),
+    backgroundColor: 'clear',
+    image: 'images/sunny-icon.png'
+  });
+  sunny.compositing('and');
+  mainWindow.add(sunny);
+  
   var cards = [];
   
-  var weatherCard = new textCard(localStorage.suburb + '\n' + Math.round(JSON.parse(localStorage.weather).currently.temperature), new Vector2(20, 20), new Vector2(104, 128), 'center');
+  // var weatherCard = new textCard(localStorage.suburb + '\n' + Math.round(JSON.parse(localStorage.weather).currently.temperature), new Vector2(20, 20), new Vector2(104, 128), 'center');
   
-  console.log(weatherCard);
+  // console.log(weatherCard);
   
   Accel.on('tap', function (e) {
     update(cards, 'down');
