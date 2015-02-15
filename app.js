@@ -12,15 +12,43 @@ Accel.init();
 
 var FETCHDELAY = 1800000;
 var MOVELIMIT = 4;
-
 var moved = true;
-
 var textShowing = 0;
 
-var mainWindow = new UI.Window({
-  fullscreen: true,
+var splashWindow = new UI.Window({
+  fullscreen: true
 });
-mainWindow.show();
+
+var mainWindow = new UI.Window({
+  fullscreen: true
+});
+
+var title = new UI.Text({
+  position: new UI.Vector2(0, 40),
+  size: new UI.Vector2(144, 20),
+  text: 'Wrist Weather',
+  color: 'black',
+  textAlign: 'center'
+});
+
+var name = new UI.Text({
+  position: new UI.Vector2(0, 80),
+  size: new UI.Vector2(144, 20),
+  text: 'Michael Zhao',
+  color: 'black',
+  textAlign: 'center'
+});
+
+var background = new UI.Rect({
+  position: new Vector2(0, 0),
+  size: new Vector2(144, 168),
+  backgroundColor: 'white'
+});
+splashWindow.add(background);
+splashWindow.add(title);
+splashWindow.add(name);
+splashWindow.show();
+mainWindow.add(background);
 
 function textCard(text, position, size, relativePosition) {
   this.textElement = new UI.Text({
@@ -121,7 +149,7 @@ function fetchWeather() {
   if (moved || localStorage.lastFetch === undefined || currentTime - localStorage.lastFetch > FETCHDELAY) {
     ajax(
       {
-        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=hourly,minutely,flags',
+        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=daily,hourly,minutely,flags',
         type: 'json'
       },
       function (data) {
@@ -140,21 +168,25 @@ function fetchWeather() {
 }
 
 function main() {
-  var background = new UI.Rect({
-    position: new Vector2(0, 0),
-    size: new Vector2(144, 168),
-    backgroundColor: 'white'
-  });
-  mainWindow.add(background);
+  splashWindow.hide();
+  mainWindow.show();
   
   var sunny = new UI.Image({
-    position: new UI.Vector2(19, 19),
+    position: new UI.Vector2(19, 14),
     size: new UI.Vector2(106, 106),
-    backgroundColor: 'clear',
-    image: 'images/sunny-icon.png'
+    image: 'images/sunnylarge.png'
   });
   sunny.compositing('and');
   mainWindow.add(sunny);
+  
+  var temp = new UI.Text({
+    position: new UI.Vector2(50, 130),
+    size: new UI.Vector2(44, 30),
+    color: 'black',
+    textAlign: 'center',
+    text: Math.round(JSON.parse(localStorage.weather).currently.temperature) + '°'
+  });
+  mainWindow.add(temp);
   
   var cards = [];
   
