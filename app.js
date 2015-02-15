@@ -13,13 +13,8 @@ Accel.init();
 var FETCHDELAY = 1800000;
 var MOVELIMIT = 4;
 var moved = true;
-var textShowing = 0;
 
 var splashWindow = new UI.Window({
-  fullscreen: true
-});
-
-var mainWindow = new UI.Window({
   fullscreen: true
 });
 
@@ -28,15 +23,17 @@ var title = new UI.Text({
   size: new UI.Vector2(144, 20),
   text: 'Wrist Weather',
   color: 'black',
-  textAlign: 'center'
+  textAlign: 'center',
+  font: 'gothic-28-bold'
 });
 
 var name = new UI.Text({
-  position: new UI.Vector2(0, 80),
+  position: new UI.Vector2(0, 100),
   size: new UI.Vector2(144, 20),
   text: 'Michael Zhao',
   color: 'black',
-  textAlign: 'center'
+  textAlign: 'center',
+  font: 'gothic-24'
 });
 
 var background = new UI.Rect({
@@ -44,10 +41,16 @@ var background = new UI.Rect({
   size: new Vector2(144, 168),
   backgroundColor: 'white'
 });
+
 splashWindow.add(background);
 splashWindow.add(title);
 splashWindow.add(name);
 splashWindow.show();
+
+var mainWindow = new UI.Window({
+  fullscreen: true
+});
+
 mainWindow.add(background);
 
 function textCard(text, position, size, relativePosition) {
@@ -57,7 +60,8 @@ function textCard(text, position, size, relativePosition) {
     borderColor: 'black',
     backgroundColor: 'white',
     color: 'black',
-    text: text
+    text: text,
+    textAlign: 'left'
   });
   mainWindow.add(this.textElement);
   
@@ -168,67 +172,42 @@ function fetchWeather() {
 }
 
 function main() {
-  splashWindow.hide();
   mainWindow.show();
+  splashWindow.hide();
   
-  var sunny = new UI.Image({
-    position: new UI.Vector2(19, 14),
-    size: new UI.Vector2(106, 106),
-    image: 'images/sunnylarge.png'
+  var weather = JSON.parse(localStorage.weather);
+  
+  var icon = new UI.Image({
+    position: new UI.Vector2(8, 12),
+    size: new UI.Vector2(128, 128),
   });
-  sunny.compositing('and');
-  mainWindow.add(sunny);
+  icon.image('images/' + weather.currently.icon + '.png');
+  mainWindow.add(icon);
   
-  var temp = new UI.Text({
-    position: new UI.Vector2(50, 130),
-    size: new UI.Vector2(44, 30),
+  var temperature = new UI.Text({
+    position: new UI.Vector2(35, 105),
+    size: new UI.Vector2(84, 50),
     color: 'black',
     textAlign: 'center',
-    text: Math.round(JSON.parse(localStorage.weather).currently.temperature) + '°'
+    font: 'bitham-42-light',
+    text: Math.round(weather.currently.temperature) + '°'
   });
-  mainWindow.add(temp);
+  mainWindow.add(temperature);
   
-  var cards = [];
-  
-  // var weatherCard = new textCard(localStorage.suburb + '\n' + Math.round(JSON.parse(localStorage.weather).currently.temperature), new Vector2(20, 20), new Vector2(104, 128), 'center');
-  
-  // console.log(weatherCard);
-  
-  Accel.on('tap', function (e) {
-    update(cards, 'down');
+  var weatherMenu = new UI.Menu({
+    sections: [{
+      title: 'Weather',
+      items: [{title: 'Currently'}, {title: 'Today'}]
+    }]
   });
-
+  
   mainWindow.on('click', function (e) {
-    if (e.button === 'up') {
-      update(cards, 'up');
-    } else if (e.button === 'down') {
-      update(cards, 'down');
-    }
+    weatherMenu.show();
+    mainWindow.hide();
   });
-}
-
-function update(cards, direction) {
-  if (direction === 'up') {
-    textShowing--;
-    if (textShowing < 0) textShowing = 2;
-  } else {
-    textShowing = (textShowing + 1) % 3;
-  }
   
-  switch (textShowing) {
-    case 0:
-      cards[2].move('down');
-      cards[1].move('down');
-      cards[0].move('center');
-      break;
-    case 1:
-      cards[2].move('down');
-      cards[1].move('center');
-      cards[0].move('up');
-      break;
-    case 2:
-      cards[0].move('up');
-      cards[1].move('up');
-      cards[2].move('center');
-  }
+  weatherMenu.on('longSelect', function (e) {
+    mainWindow.show();
+    weatherMenu.hide();
+  });
 }
