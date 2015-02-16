@@ -53,39 +53,6 @@ var mainWindow = new UI.Window({
 
 mainWindow.add(background);
 
-function textCard(text, position, size, relativePosition) {
-  this.textElement = new UI.Text({
-    position: position,
-    size: size,
-    borderColor: 'black',
-    backgroundColor: 'white',
-    color: 'black',
-    text: text,
-    textAlign: 'left'
-  });
-  mainWindow.add(this.textElement);
-  
-  this.relativePosition = relativePosition;
-  
-  this.move = function (position) {
-    if (position !== this.relativePosition) {
-      this.relativePosition = position;
-      var movePosition = this.textElement.position();
-      switch (position) {
-        case 'up':
-          movePosition.y = 0 - this.textElement.size().y;
-          break;
-        case 'center':
-          movePosition.y = 20;
-          break;
-        case 'down':
-          movePosition.y = 168;
-      }
-      this.textElement.animate('position', movePosition, 500);
-    }
-  };
-}
-
 function hasMoved(coords, accuracy) {
   if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - coords.latitude.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - coords.longitude.toFixed(accuracy)) > 0) {
     console.log('Moved');
@@ -153,7 +120,7 @@ function fetchWeather() {
   if (moved || localStorage.lastFetch === undefined || currentTime - localStorage.lastFetch > FETCHDELAY) {
     ajax(
       {
-        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=daily,hourly,minutely,flags',
+        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=minutely,flags',
         type: 'json'
       },
       function (data) {
@@ -162,7 +129,7 @@ function fetchWeather() {
         main();
       },
       function (error) {
-        console.log('Weather download failed: ' + error);
+        console.log('Weather download failed');
       }
     );
   } else {
@@ -174,7 +141,7 @@ function fetchWeather() {
 function main() {
   mainWindow.show();
   splashWindow.hide();
-  
+  var iconShowing = true;
   var weather = JSON.parse(localStorage.weather);
   
   var icon = new UI.Image({
@@ -194,6 +161,16 @@ function main() {
   });
   mainWindow.add(temperature);
   
+  var description = new UI.Text({
+    position: new UI.Vector2(10, 168),
+    size: new UI.Vector2(124, 148),
+    color: 'black',
+    textAlign: 'left',
+    font: 'gothic-18',
+    text: weather.hourly.summary + '\n' + weather.daily.summary
+  });
+  mainWindow.add(description);
+  
   var weatherMenu = new UI.Menu({
     sections: [{
       title: 'Weather',
@@ -202,8 +179,33 @@ function main() {
   });
   
   mainWindow.on('click', function (e) {
-    weatherMenu.show();
-    mainWindow.hide();
+    var iconPosition = icon.position();
+    var temperaturePosition = temperature.position();
+    var descriptionPosition = description.position();
+    if (e.button === 'select') {
+      weatherMenu.show();
+      mainWindow.hide();
+    } else if (e.button === 'up' && !iconShowing) {
+      descriptionPosition.y = 168;
+      description.animate('position', descriptionPosition, 400).queue(function (next) {
+        temperaturePosition.y = 105;
+        temperature.animate('position', temperaturePosition, 100).queue(function (next) {
+          iconPosition.y = 12;
+          icon.animate('position', iconPosition, 100);
+        });
+      });
+      iconShowing = !iconShowing;
+    } else if (e.button === 'down' && iconShowing) {
+      iconPosition.y = -128;
+      icon.animate('position', iconPosition, 100).queue(function (next) {
+        temperaturePosition.y = -50;
+        temperature.animate('position', temperaturePosition, 400).queue(function (next) {
+          descriptionPosition.y = 10;
+          description.animate('position', descriptionPosition, 100);
+        });
+      });
+      iconShowing = !iconShowing;
+    }
   });
   
   weatherMenu.on('longSelect', function (e) {
