@@ -13,6 +13,7 @@ Accel.init();
 var FETCHDELAY = 1800000;
 var MOVELIMIT = 4;
 var moved = true;
+var weather;
 
 var splashWindow = new UI.Window({
   fullscreen: true
@@ -124,6 +125,7 @@ function fetchWeather() {
         type: 'json'
       },
       function (data) {
+        weather = data;
         localStorage.weather = JSON.stringify(data);
         localStorage.lastFetch = currentTime;
         main();
@@ -134,6 +136,7 @@ function fetchWeather() {
     );
   } else {
     console.log('Fetched recently or hasn\'t moved');
+    weather = JSON.parse(localStorage.weather);
     main();
   }
 }
@@ -142,7 +145,6 @@ function main() {
   mainWindow.show();
   splashWindow.hide();
   var iconShowing = true;
-  var weather = JSON.parse(localStorage.weather);
   
   var icon = new UI.Image({
     position: new UI.Vector2(8, 12),
@@ -162,19 +164,19 @@ function main() {
   mainWindow.add(temperature);
   
   var description = new UI.Text({
-    position: new UI.Vector2(10, 168),
-    size: new UI.Vector2(124, 148),
+    position: new UI.Vector2(5, 168),
+    size: new UI.Vector2(134, 153),
     color: 'black',
     textAlign: 'left',
     font: 'gothic-18',
-    text: weather.hourly.summary + '\n' + weather.daily.summary
+    text: weather.hourly.summary + '\n\n' + weather.daily.summary
   });
   mainWindow.add(description);
   
-  var weatherMenu = new UI.Menu({
+  var dailyWeatherMenu = new UI.Menu({
     sections: [{
-      title: 'Weather',
-      items: [{title: 'Currently'}, {title: 'Today'}]
+      title: localStorage.suburb,
+      items: getDailyMenuItems()
     }]
   });
   
@@ -183,7 +185,7 @@ function main() {
     var temperaturePosition = temperature.position();
     var descriptionPosition = description.position();
     if (e.button === 'select') {
-      weatherMenu.show();
+      dailyWeatherMenu.show();
       mainWindow.hide();
     } else if (e.button === 'up' && !iconShowing) {
       descriptionPosition.y = 168;
@@ -200,7 +202,7 @@ function main() {
       icon.animate('position', iconPosition, 100).queue(function (next) {
         temperaturePosition.y = -50;
         temperature.animate('position', temperaturePosition, 400).queue(function (next) {
-          descriptionPosition.y = 10;
+          descriptionPosition.y = 15;
           description.animate('position', descriptionPosition, 100);
         });
       });
@@ -208,8 +210,30 @@ function main() {
     }
   });
   
-  weatherMenu.on('longSelect', function (e) {
-    mainWindow.show();
-    weatherMenu.hide();
+  dailyWeatherMenu.on('select', function (e) {
+    if (e.itemIndex === 0) {
+      
+    } else {
+      
+    }
   });
+  
+  dailyWeatherMenu.on('longSelect', function (e) {
+    mainWindow.show();
+    dailyWeatherMenu.hide();
+  });
+}
+
+function getDailyMenuItems() {
+  var dailyMenuItems = [];
+  var dailyData = weather.daily.data;
+  dailyData.shift();
+  for (var i in dailyData) {
+    var date = new Date(dailyData[i].time * 1000);
+    dailyMenuItems.push({
+      title: date.toDateString().substring(0, date.toDateString().lastIndexOf(' ')),
+      subtitle: Math.round(dailyData[i].temperatureMin) + '° - ' + Math.round(dailyData[i].temperatureMax) + '°'
+    });
+  }
+  return dailyMenuItems;
 }
