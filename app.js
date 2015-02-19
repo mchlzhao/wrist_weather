@@ -93,7 +93,8 @@ function fetchAddress() {
     ajax(
       {
         url: 'https://maps.googleapis.com/maps/api/geocode/json?latlng=' + localStorage.lat + ',' + localStorage.lon,
-        type: 'json'
+        type: 'json',
+        timeout: 5000
       },
       function (data) {
         localStorage.suburb = (function () {
@@ -107,7 +108,8 @@ function fetchAddress() {
         fetchWeather();
       },
       function (error) {
-        console.log('Fetch address failed: ' + error);
+        console.log('Fetch address failed');
+        fetchWeather();
       }
     );
   } else {
@@ -122,7 +124,8 @@ function fetchWeather() {
     ajax(
       {
         url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=minutely,flags',
-        type: 'json'
+        type: 'json',
+        timeout: 5000
       },
       function (data) {
         weather = data;
@@ -132,6 +135,8 @@ function fetchWeather() {
       },
       function (error) {
         console.log('Weather download failed');
+        weather = JSON.parse(localStorage.weather);
+        main();
       }
     );
   } else {
@@ -150,6 +155,7 @@ function main() {
     position: new UI.Vector2(8, 12),
     size: new UI.Vector2(128, 128),
   });
+  console.log(weather.currently.icon);
   icon.image('images/' + weather.currently.icon + '.png');
   mainWindow.add(icon);
   
