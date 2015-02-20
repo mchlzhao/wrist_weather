@@ -79,6 +79,7 @@ navigator.geolocation.getCurrentPosition(
   },
   function (err) {
     console.log('Location error (' + err.code + '): ' + err.message);
+    moved = false;
     fetchAddress();
   },
   {
@@ -152,15 +153,15 @@ function main() {
   var iconShowing = true;
   
   var icon = new UI.Image({
-    position: new UI.Vector2(8, 12),
-    size: new UI.Vector2(128, 128),
+    position: new UI.Vector2(27, 28),
+    size: new UI.Vector2(90, 70),
   });
   console.log(weather.currently.icon);
   icon.image('images/' + weather.currently.icon + '.png');
   mainWindow.add(icon);
   
   var temperature = new UI.Text({
-    position: new UI.Vector2(35, 105),
+    position: new UI.Vector2(32, 105),
     size: new UI.Vector2(84, 50),
     color: 'black',
     textAlign: 'center',
@@ -198,7 +199,7 @@ function main() {
       description.animate('position', descriptionPosition, 400).queue(function (next) {
         temperaturePosition.y = 105;
         temperature.animate('position', temperaturePosition, 100).queue(function (next) {
-          iconPosition.y = 12;
+          iconPosition.y = 28;
           icon.animate('position', iconPosition, 100);
         });
       });
@@ -213,14 +214,6 @@ function main() {
         });
       });
       iconShowing = !iconShowing;
-    }
-  });
-  
-  dailyWeatherMenu.on('select', function (e) {
-    if (e.itemIndex === 0) {
-      
-    } else {
-      
     }
   });
   
