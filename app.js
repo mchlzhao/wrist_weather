@@ -85,7 +85,7 @@ navigator.geolocation.getCurrentPosition(
   {
     enableHighAccuracy: true,
     maximumAge: 60000,
-    timeout: 5000
+    timeout: 4000
   }
 );
 
@@ -124,7 +124,7 @@ function fetchWeather() {
   if (moved || localStorage.lastFetch === undefined || currentTime - localStorage.lastFetch > FETCHDELAY) {
     ajax(
       {
-        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=minutely,flags',
+        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=hourly,minutely,flags',
         type: 'json',
         timeout: 5000
       },
@@ -176,7 +176,7 @@ function main() {
     color: 'black',
     textAlign: 'left',
     font: 'gothic-18',
-    text: weather.hourly.summary + '\n\n' + weather.daily.summary
+    text: weather.daily.data[0].summary + '\n\n' + weather.daily.summary
   });
   mainWindow.add(description);
   
@@ -231,7 +231,8 @@ function getDailyMenuItems() {
     var date = new Date(dailyData[i].time * 1000);
     dailyMenuItems.push({
       title: date.toDateString().substring(0, date.toDateString().lastIndexOf(' ')),
-      subtitle: Math.round(dailyData[i].temperatureMin) + '° - ' + Math.round(dailyData[i].temperatureMax) + '°'
+      subtitle: Math.round(dailyData[i].temperatureMin) + '° - ' + Math.round(dailyData[i].temperatureMax) + '°',
+      icon: 'images/' + dailyData[i].icon + '-icon.png'
     });
   }
   return dailyMenuItems;
