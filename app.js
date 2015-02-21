@@ -8,16 +8,13 @@ var UI = require('ui');
 var Vector2 = require('vector2');
 var Accel = require('ui/accel');
 var ajax = require('ajax');
+var Vibe = require('ui/vibe');
 Accel.init();
 
 var FETCHDELAY = 1800000;
 var MOVELIMIT = 4;
 var moved = true;
 var weather;
-
-var splashWindow = new UI.Window({
-  fullscreen: true
-});
 
 var title = new UI.Text({
   position: new UI.Vector2(0, 40),
@@ -43,16 +40,27 @@ var background = new UI.Rect({
   backgroundColor: 'white'
 });
 
+var splashWindow = new UI.Window({
+  fullscreen: true
+});
 splashWindow.add(background);
 splashWindow.add(title);
 splashWindow.add(name);
 splashWindow.show();
 
-var mainWindow = new UI.Window({
-  fullscreen: true
-});
-
-mainWindow.add(background);
+function displayErrorCard(error) {
+  var text = 'Please enable WiFi or Data';
+  if (error === 1) {
+    text = 'Please enable Location';
+  }
+  
+  var errorCard = new UI.Card({
+    subtitle: 'Error',
+    body: text + ' on your phone and try again.'
+  });
+  errorCard.show();
+  splashWindow.hide();
+}
 
 function hasMoved(coords, accuracy) {
   if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - coords.latitude.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - coords.longitude.toFixed(accuracy)) > 0) {
@@ -61,14 +69,12 @@ function hasMoved(coords, accuracy) {
     localStorage.lon = coords.longitude;
     return true;
   }
-  console.log('22222222222');
   return false;
 }
 
 navigator.geolocation.getCurrentPosition(
   function (pos) {
     if (localStorage.lat !== undefined && localStorage.lon !== undefined) {
-      console.log('11111111');
       moved = hasMoved(pos.coords, MOVELIMIT);
     } else {
       console.log('Lat Lon not in Local Storage');
@@ -79,8 +85,7 @@ navigator.geolocation.getCurrentPosition(
   },
   function (err) {
     console.log('Location error (' + err.code + '): ' + err.message);
-    moved = false;
-    fetchAddress();
+    displayErrorCard(1);
   },
   {
     enableHighAccuracy: true,
@@ -90,6 +95,7 @@ navigator.geolocation.getCurrentPosition(
 );
 
 function fetchAddress() {
+  Vibe.vibrate('double');
   if (moved) {
     ajax(
       {
@@ -110,7 +116,7 @@ function fetchAddress() {
       },
       function (error) {
         console.log('Fetch address failed');
-        fetchWeather();
+        displayErrorCard(2);
       }
     );
   } else {
@@ -136,8 +142,7 @@ function fetchWeather() {
       },
       function (error) {
         console.log('Weather download failed');
-        weather = JSON.parse(localStorage.weather);
-        main();
+        displayErrorCard(3);
       }
     );
   } else {
@@ -148,8 +153,13 @@ function fetchWeather() {
 }
 
 function main() {
+  var mainWindow = new UI.Window({
+    fullscreen: true
+  });
+  mainWindow.add(background);
   mainWindow.show();
   splashWindow.hide();
+  
   var iconShowing = true;
   
   var icon = new UI.Image({
