@@ -95,7 +95,6 @@ navigator.geolocation.getCurrentPosition(
 );
 
 function fetchAddress() {
-  Vibe.vibrate('double');
   if (moved) {
     ajax(
       {
@@ -112,6 +111,7 @@ function fetchAddress() {
             }
           }
         })();
+        Vibe.vibrate('short');
         fetchWeather();
       },
       function (error) {
@@ -138,6 +138,7 @@ function fetchWeather() {
         weather = data;
         localStorage.weather = JSON.stringify(data);
         localStorage.lastFetch = currentTime;
+        Vibe.vibrate('short');
         main();
       },
       function (error) {
@@ -185,8 +186,8 @@ function main() {
     size: new UI.Vector2(134, 153),
     color: 'black',
     textAlign: 'left',
-    font: 'gothic-18',
-    text: weather.daily.data[0].summary + '\n\n' + weather.daily.summary
+    font: 'gothic-24',
+    text: weather.daily.summary
   });
   mainWindow.add(description);
   
@@ -236,7 +237,6 @@ function main() {
 function getDailyMenuItems() {
   var dailyMenuItems = [];
   var dailyData = weather.daily.data;
-  dailyData.shift();
   for (var i in dailyData) {
     var date = new Date(dailyData[i].time * 1000);
     dailyMenuItems.push({
