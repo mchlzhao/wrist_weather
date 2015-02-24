@@ -220,7 +220,7 @@ function main() {
       icon.animate('position', iconPosition, 100).queue(function (next) {
         temperaturePosition.y = -50;
         temperature.animate('position', temperaturePosition, 400).queue(function (next) {
-          descriptionPosition.y = 15;
+          descriptionPosition.y = 2;
           description.animate('position', descriptionPosition, 100);
         });
       });
@@ -229,6 +229,11 @@ function main() {
   });
   
   dailyWeatherMenu.on('longSelect', function (e) {
+    mainWindow.show();
+    dailyWeatherMenu.hide();
+  });
+  
+  dailyWeatherMenu.on('accelTap', function (e) {
     mainWindow.show();
     dailyWeatherMenu.hide();
   });
