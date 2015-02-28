@@ -12,7 +12,7 @@ var Vibe = require('ui/vibe');
 Accel.init();
 
 var FETCHDELAY = 1800000;
-var MOVELIMIT = 4;
+var MOVELIMIT = 3;
 var moved = true;
 var weather;
 
@@ -143,7 +143,7 @@ function fetchWeather() {
       },
       function (error) {
         console.log('Weather download failed');
-        displayErrorCard(3);
+        displayErrorCard(2);
       }
     );
   } else {
@@ -198,6 +198,10 @@ function main() {
     }]
   });
   
+  var dailyInfoCard = new UI.Card({
+    scrollable: true
+  });
+  
   mainWindow.on('click', function (e) {
     var iconPosition = icon.position();
     var temperaturePosition = temperature.position();
@@ -228,6 +232,15 @@ function main() {
     }
   });
   
+  var dailyInfo = getDailyInfo(['light']);
+  
+  dailyWeatherMenu.on('select', function (e) {
+    dailyInfoCard.title(e.item.title);
+    dailyInfoCard.body(dailyInfo[e.itemIndex]);
+    dailyInfoCard.show();
+    dailyWeatherMenu.hide();
+  });
+  
   dailyWeatherMenu.on('longSelect', function (e) {
     mainWindow.show();
     dailyWeatherMenu.hide();
@@ -236,6 +249,11 @@ function main() {
   dailyWeatherMenu.on('accelTap', function (e) {
     mainWindow.show();
     dailyWeatherMenu.hide();
+  });
+  
+  dailyInfoCard.on('click', function (e) {
+    dailyWeatherMenu.show();
+    dailyInfoCard.hide();
   });
 }
 
@@ -251,4 +269,41 @@ function getDailyMenuItems() {
     });
   }
   return dailyMenuItems;
+}
+
+function getDailyInfo(options) {
+  var info = [];
+  for (var i = 0; i < 8; i++) {
+    var dailyInfo = '';
+    for (var j in options) {
+      switch (options[j]) {
+        case 'light':
+          dailyInfo = dailyInfo + 'Sunrise: ' + getTime(weather.daily.data[i].sunriseTime);
+          break;
+        case 'precip':
+          break;
+        case 'temp':
+          break;
+        case 'wind':
+          break;
+        case 'cloud':
+          break;
+        case 'humidity':
+          break;
+        case 'dew':
+          break;
+        case 'pressure':
+          
+      }
+      dailyInfo = dailyInfo + '\n';
+    }
+    info.push(dailyInfo);
+  }
+  
+  return info;
+}
+
+function getTime(unixTime) {
+  var d = new Date(unixTime * 1000);
+  return d.toTimeString().substring(0, d.toTimeString().lastIndexOf(':'));
 }
