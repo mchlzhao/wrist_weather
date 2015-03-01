@@ -199,7 +199,8 @@ function main() {
   });
   
   var dailyInfoCard = new UI.Card({
-    scrollable: true
+    scrollable: true,
+    style: 'small'
   });
   
   mainWindow.on('click', function (e) {
@@ -235,7 +236,6 @@ function main() {
   var dailyInfo = getDailyInfo(['light']);
   
   dailyWeatherMenu.on('select', function (e) {
-    dailyInfoCard.title(e.item.title);
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
     dailyInfoCard.show();
     dailyWeatherMenu.hide();
@@ -252,6 +252,11 @@ function main() {
   });
   
   dailyInfoCard.on('click', function (e) {
+    dailyWeatherMenu.show();
+    dailyInfoCard.hide();
+  });
+  
+  dailyInfoCard.on('accelTap', function (e) {
     dailyWeatherMenu.show();
     dailyInfoCard.hide();
   });
@@ -273,37 +278,61 @@ function getDailyMenuItems() {
 
 function getDailyInfo(options) {
   var info = [];
+  
   for (var i = 0; i < 8; i++) {
-    var dailyInfo = '';
-    for (var j in options) {
-      switch (options[j]) {
-        case 'light':
-          dailyInfo = dailyInfo + 'Sunrise: ' + getTime(weather.daily.data[i].sunriseTime);
-          break;
-        case 'precip':
-          break;
-        case 'temp':
-          break;
-        case 'wind':
-          break;
-        case 'cloud':
-          break;
-        case 'humidity':
-          break;
-        case 'dew':
-          break;
-        case 'pressure':
-          
-      }
-      dailyInfo = dailyInfo + '\n';
-    }
-    info.push(dailyInfo);
+    info.push(weather.daily.data[i].summary.replace('.', '') + '\n\n');
   }
   
+  for (var i in options) {
+    switch (options[i]) {
+      case 'light':
+        for (var j in info) {
+          info[j] = info[j] +
+            'Sunrise: ' + getTime(weather.daily.data[j].sunriseTime) + '\n' +
+            'Sunset: ' + getTime(weather.daily.data[j].sunsetTime) + '\n' +
+            'Moon: ' + getMoonPhase(weather.daily.data[j].moonPhase) + '\n';
+        }
+        break;
+      case 'precip':
+        break;
+      case 'temp':
+        break;
+      case 'wind':
+        break;
+      case 'cloud':
+        break;
+      case 'humidity':
+        break;
+      case 'dew':
+        break;
+      case 'pressure':
+          
+    }
+  }
   return info;
 }
 
 function getTime(unixTime) {
   var d = new Date(unixTime * 1000);
   return d.toTimeString().substring(0, d.toTimeString().lastIndexOf(':'));
+}
+
+function getMoonPhase(phase) {
+  if (Math.abs(phase - 1) < 0.02 || phase < 0.02) {
+    return 'New Moon';
+  } else if (phase < 0.24) {
+    return 'Waxing Cresent';
+  } else if (Math.abs(phase - 0.25) < 0.02) {
+    return 'First Quarter';
+  } else if (phase < 0.49) {
+    return 'Waxing Gibbous';
+  } else if (Math.abs(phase - 0.5) < 0.02) {
+    return 'Full Moon';
+  } else if (phase < 0.74) {
+    return 'Waning Gibbous';
+  } else if (Math.abs(phase - 0.75) < 0.02) {
+    return 'Last Quarter';
+  } else {
+    return 'Waning Cresent';
+  }
 }
