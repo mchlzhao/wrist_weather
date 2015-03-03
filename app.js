@@ -233,7 +233,7 @@ function main() {
     }
   });
   
-  var dailyInfo = getDailyInfo(['light']);
+  var dailyInfo = getDailyInfo(['temp', 'light']);
   
   dailyWeatherMenu.on('select', function (e) {
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
@@ -280,7 +280,7 @@ function getDailyInfo(options) {
   var info = [];
   
   for (var i = 0; i < 8; i++) {
-    info.push(weather.daily.data[i].summary.replace('.', '') + '\n\n');
+    info.push(weather.daily.data[i].summary + '\n\n');
   }
   
   for (var i in options) {
@@ -288,14 +288,19 @@ function getDailyInfo(options) {
       case 'light':
         for (var j in info) {
           info[j] = info[j] +
-            'Sunrise: ' + getTime(weather.daily.data[j].sunriseTime) + '\n' +
-            'Sunset: ' + getTime(weather.daily.data[j].sunsetTime) + '\n' +
+            'Sunrise at ' + getTime(weather.daily.data[j].sunriseTime) + '\n' +
+            'Sunset at ' + getTime(weather.daily.data[j].sunsetTime) + '\n' +
             'Moon: ' + getMoonPhase(weather.daily.data[j].moonPhase) + '\n';
         }
         break;
       case 'precip':
         break;
       case 'temp':
+        for (var j in info) {
+          info[j] = info[j] + 
+            'Min Temp ' + Math.round(weather.daily.data[j].temperatureMin) + '° at ' + getTime(weather.daily.data[j].temperatureMinTime) + '\n' +
+            'Max Temp ' + Math.round(weather.daily.data[j].temperatureMax) + '° at ' + getTime(weather.daily.data[j].temperatureMaxTime) + '\n';
+        }
         break;
       case 'wind':
         break;
