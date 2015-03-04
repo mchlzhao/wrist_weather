@@ -15,6 +15,7 @@ var FETCHDELAY = 1800000;
 var MOVELIMIT = 3;
 var moved = true;
 var weather;
+var directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 
 var title = new UI.Text({
   position: new UI.Vector2(0, 40),
@@ -233,7 +234,7 @@ function main() {
     }
   });
   
-  var dailyInfo = getDailyInfo(['temp', 'light']);
+  var dailyInfo = getDailyInfo(['temp', 'wind', 'light']);
   
   dailyWeatherMenu.on('select', function (e) {
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
@@ -303,6 +304,10 @@ function getDailyInfo(options) {
         }
         break;
       case 'wind':
+        for (var j in info) {
+          info[j] = info[j] +
+            'Wind: ' + getWindDirection(weather.daily.data[j].windBearing) + ' ' + Math.round(weather.daily.data[j].windSpeed * 3.6) + 'km/h\n';
+        }
         break;
       case 'cloud':
         break;
@@ -340,4 +345,8 @@ function getMoonPhase(phase) {
   } else {
     return 'Waning Cresent';
   }
+}
+  
+function getWindDirection(angle) {
+  return directions[Math.floor(((angle + 11.25) / 22.5) % 16)];
 }
