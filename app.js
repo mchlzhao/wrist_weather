@@ -234,7 +234,7 @@ function main() {
     }
   });
   
-  var dailyInfo = getDailyInfo(['temp', 'wind', 'light']);
+  var dailyInfo = getDailyInfo(['temp', 'precip', 'wind', 'light']);
   
   dailyWeatherMenu.on('select', function (e) {
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
@@ -295,6 +295,13 @@ function getDailyInfo(options) {
         }
         break;
       case 'precip':
+        for (var j in info) {
+          if (weather.daily.data[j].precipProbability !== 0) {
+            info[j] = info[j] +
+              Math.round(weather.daily.data[j].precipProbability * 100) + '% chance of ' + weather.daily.data[j].precipType + '\n' +
+              'Heaviest at ' + getTime(weather.daily.data[j].precipIntensityMaxTime) + '\n';
+          }
+        }
         break;
       case 'temp':
         for (var j in info) {
