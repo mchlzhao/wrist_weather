@@ -281,14 +281,14 @@ function getDailyInfo(options) {
   var info = [];
   
   for (var i = 0; i < 8; i++) {
-    info.push(weather.daily.data[i].summary + '\n\n');
+    info.push(weather.daily.data[i].summary + '\n');
   }
   
   for (var i in options) {
     switch (options[i]) {
       case 'light':
         for (var j in info) {
-          info[j] = info[j] +
+          info[j] = info[j] + '\nLight:\n' +
             'Sunrise at ' + getTime(weather.daily.data[j].sunriseTime) + '\n' +
             'Sunset at ' + getTime(weather.daily.data[j].sunsetTime) + '\n' +
             'Moon: ' + getMoonPhase(weather.daily.data[j].moonPhase) + '\n';
@@ -296,8 +296,8 @@ function getDailyInfo(options) {
         break;
       case 'precip':
         for (var j in info) {
-          if (weather.daily.data[j].precipProbability !== 0) {
-            info[j] = info[j] +
+          if (weather.daily.data[j].precipProbability >= 0.05) {
+            info[j] = info[j] + '\nPrecipitation:\n' + 
               Math.round(weather.daily.data[j].precipProbability * 100) + '% chance of ' + weather.daily.data[j].precipType + '\n' +
               'Heaviest at ' + getTime(weather.daily.data[j].precipIntensityMaxTime) + '\n';
           }
@@ -305,15 +305,15 @@ function getDailyInfo(options) {
         break;
       case 'temp':
         for (var j in info) {
-          info[j] = info[j] + 
-            'Min Temp ' + Math.round(weather.daily.data[j].temperatureMin) + '° at ' + getTime(weather.daily.data[j].temperatureMinTime) + '\n' +
-            'Max Temp ' + Math.round(weather.daily.data[j].temperatureMax) + '° at ' + getTime(weather.daily.data[j].temperatureMaxTime) + '\n';
+          info[j] = info[j] + '\nTemperature:\n' + 
+            'Min of ' + Math.round(weather.daily.data[j].temperatureMin) + '° at ' + getTime(weather.daily.data[j].temperatureMinTime) + '\n' +
+            'Max of ' + Math.round(weather.daily.data[j].temperatureMax) + '° at ' + getTime(weather.daily.data[j].temperatureMaxTime) + '\n';
         }
         break;
       case 'wind':
         for (var j in info) {
           info[j] = info[j] +
-            'Wind: ' + getWindDirection(weather.daily.data[j].windBearing) + ' ' + Math.round(weather.daily.data[j].windSpeed * 3.6) + 'km/h\n';
+            '\nWind: ' + ' ' + Math.round(weather.daily.data[j].windSpeed * 3.6) + ' km/h  ' + getWindDirection(weather.daily.data[j].windBearing) + '\n';
         }
         break;
       case 'cloud':
