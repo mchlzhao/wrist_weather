@@ -234,7 +234,7 @@ function main() {
     }
   });
   
-  var dailyInfo = getDailyInfo(['temp', 'precip', 'wind', 'light']);
+  var dailyInfo = getDailyInfo(['temp', 'precip', 'wind', 'cloud', 'humidity', 'dew', 'light']);
   
   dailyWeatherMenu.on('select', function (e) {
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
@@ -312,18 +312,27 @@ function getDailyInfo(options) {
         break;
       case 'wind':
         for (var j in info) {
-          info[j] = info[j] +
-            '\nWind: ' + ' ' + Math.round(weather.daily.data[j].windSpeed * 3.6) + ' km/h  ' + getWindDirection(weather.daily.data[j].windBearing) + '\n';
+          info[j] = info[j] + '\nWind: ' +
+            Math.round(weather.daily.data[j].windSpeed * 3.6) + ' km/h  ' + getWindDirection(weather.daily.data[j].windBearing) + '\n';
         }
         break;
       case 'cloud':
+        for (var j in info) {
+          info[j] = info[j] + '\nCloud: ' +
+            weather.daily.data[j].cloudCover * 100 + '% cover\n';
+        }
         break;
       case 'humidity':
+        for (var j in info) {
+          info[j] = info[j] + '\nHumidity: ' +
+            weather.daily.data[j].humidity * 100 + '%\n';
+        }
         break;
       case 'dew':
-        break;
-      case 'pressure':
-          
+        for (var j in info) {
+          info[j] = info[j] + '\nDew Point: ' +
+            weather.daily.data[j].dewPoint + '°\n';
+        } 
     }
   }
   return info;
