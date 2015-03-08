@@ -296,7 +296,7 @@ function getDailyInfo(options) {
         break;
       case 'precip':
         for (var j in info) {
-          if (weather.daily.data[j].precipProbability >= 0.05) {
+          if (weather.daily.data[j].precipProbability > 0) {
             info[j] = info[j] + '\nPrecipitation:\n' + 
               Math.round(weather.daily.data[j].precipProbability * 100) + '% chance of ' + weather.daily.data[j].precipType + '\n' +
               'Heaviest at ' + getTime(weather.daily.data[j].precipIntensityMaxTime) + '\n';
@@ -319,19 +319,19 @@ function getDailyInfo(options) {
       case 'cloud':
         for (var j in info) {
           info[j] = info[j] + '\nCloud: ' +
-            weather.daily.data[j].cloudCover * 100 + '% cover\n';
+            Math.round(weather.daily.data[j].cloudCover * 100) + '% cover\n';
         }
         break;
       case 'humidity':
         for (var j in info) {
           info[j] = info[j] + '\nHumidity: ' +
-            weather.daily.data[j].humidity * 100 + '%\n';
+            Math.round(weather.daily.data[j].humidity * 100) + '%\n';
         }
         break;
       case 'dew':
         for (var j in info) {
           info[j] = info[j] + '\nDew Point: ' +
-            weather.daily.data[j].dewPoint + '°\n';
+            Math.round(weather.daily.data[j].dewPoint) + '°\n';
         } 
     }
   }
