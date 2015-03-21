@@ -9,6 +9,8 @@ var Vector2 = require('vector2');
 var Accel = require('ui/accel');
 var ajax = require('ajax');
 var Vibe = require('ui/vibe');
+var Settings = require('settings');
+
 Accel.init();
 
 var FETCHDELAY = 1800000;
@@ -48,6 +50,15 @@ splashWindow.add(background);
 splashWindow.add(title);
 splashWindow.add(name);
 splashWindow.show();
+
+Settings.config(
+  {
+    url: 'http://myzo.github.io/wrist-weather-settings'
+  },
+  function (e) {
+    console.log('Closed Config');
+  }
+);
 
 function displayErrorCard(error) {
   var text = 'Please enable WiFi or Data';
@@ -234,7 +245,8 @@ function main() {
     }
   });
   
-  var dailyInfo = getDailyInfo(['temp', 'precip', 'wind', 'cloud', 'humidity', 'dew', 'light']);
+  console.log('Settings: ' + Settings.option('summaryOptionNames'));
+  var dailyInfo = getDailyInfo(Settings.option('summaryOptionNames'));
   
   dailyWeatherMenu.on('select', function (e) {
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
@@ -300,6 +312,8 @@ function getDailyInfo(options) {
             info[j] = info[j] + '\nPrecipitation:\n' + 
               Math.round(weather.daily.data[j].precipProbability * 100) + '% chance of ' + weather.daily.data[j].precipType + '\n' +
               'Heaviest at ' + getTime(weather.daily.data[j].precipIntensityMaxTime) + '\n';
+          } else {
+            info[j] = info[j] + '\nNo Precipitation\n';
           }
         }
         break;
@@ -310,27 +324,15 @@ function getDailyInfo(options) {
             'Max of ' + Math.round(weather.daily.data[j].temperatureMax) + '° at ' + getTime(weather.daily.data[j].temperatureMaxTime) + '\n';
         }
         break;
-      case 'wind':
+      case 'misc':
         for (var j in info) {
           info[j] = info[j] + '\nWind: ' +
             Math.round(weather.daily.data[j].windSpeed * 3.6) + ' km/h  ' + getWindDirection(weather.daily.data[j].windBearing) + '\n';
-        }
-        break;
-      case 'cloud':
-        for (var j in info) {
-          info[j] = info[j] + '\nCloud: ' +
+          info[j] = info[j] + 'Cloud: ' +
             Math.round(weather.daily.data[j].cloudCover * 100) + '% cover\n';
-        }
-        break;
-      case 'humidity':
-        for (var j in info) {
-          info[j] = info[j] + '\nHumidity: ' +
+          info[j] = info[j] + 'Humidity: ' +
             Math.round(weather.daily.data[j].humidity * 100) + '%\n';
-        }
-        break;
-      case 'dew':
-        for (var j in info) {
-          info[j] = info[j] + '\nDew Point: ' +
+          info[j] = info[j] + 'Dew Point: ' +
             Math.round(weather.daily.data[j].dewPoint) + '°\n';
         } 
     }
