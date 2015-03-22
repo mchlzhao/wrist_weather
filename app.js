@@ -245,8 +245,22 @@ function main() {
     }
   });
   
-  console.log('Settings: ' + Settings.option('summaryOptionNames'));
-  var dailyInfo = getDailyInfo(Settings.option('summaryOptionNames'));
+  var dailySummaryOptions = Settings.option('dailySummaryOptions');
+  var dailySummaryOptionsChecked = [];
+  if (dailySummaryOptions === undefined) {
+    dailySummaryOptionsChecked.push('temp');
+  } else {
+    var dailySummaryOptionKeys = Object.keys(dailySummaryOptions);
+    for (var i in dailySummaryOptionKeys) {
+      if (dailySummaryOptions[dailySummaryOptionKeys[i]]) {
+        dailySummaryOptionsChecked.push(dailySummaryOptionKeys[i]);
+      }
+    }
+  }
+  
+  console.log('Settings: ' + dailySummaryOptionsChecked);
+  
+  var dailyInfo = getDailyInfo(dailySummaryOptionsChecked);
   
   dailyWeatherMenu.on('select', function (e) {
     dailyInfoCard.body(dailyInfo[e.itemIndex]);
