@@ -13,8 +13,18 @@ var Settings = require('settings');
 
 Accel.init();
 
-var FETCHDELAY = 1800000;
-var MOVELIMIT = 3;
+var updateFrequency = Settings.option('updateFrequency');
+var FETCHDELAY, MOVELIMIT;
+if (updateFrequency === undefined) {
+  FETCHDELAY = 1800000;
+  MOVELIMIT = 3;
+} else {
+  FETCHDELAY = updateFrequency.time * 60000;
+  MOVELIMIT = updateFrequency.distance;
+}
+
+console.log('Frequency: ' + FETCHDELAY + ' | ' + MOVELIMIT);
+
 var moved = true;
 var weather;
 var directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
