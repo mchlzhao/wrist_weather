@@ -1,5 +1,5 @@
 /**
- * Animations
+ * Wrist Weather
  *
  * By Michael Zhao
  */
@@ -194,13 +194,17 @@ function main() {
   mainWindow.add(icon);
   
   var temperature = new UI.Text({
-    position: new UI.Vector2(32, 105),
-    size: new UI.Vector2(84, 50),
+    position: new UI.Vector2(5, 105),
+    size: new UI.Vector2(144, 50),
     color: 'black',
     textAlign: 'center',
-    font: 'bitham-42-light',
-    text: Math.round(weather.currently.temperature) + '°'
+    font: 'bitham-42-light'
   });
+  if (FETCHDELAY === 0) {
+    temperature.text(weather.currently.temperature + '°');
+  } else {
+    temperature.text(Math.round(weather.currently.temperature) + '°');
+  }
   mainWindow.add(temperature);
   
   var description = new UI.Text({
@@ -234,21 +238,21 @@ function main() {
       mainWindow.hide();
     } else if (e.button === 'up' && !iconShowing) {
       descriptionPosition.y = 168;
-      description.animate('position', descriptionPosition, 400).queue(function (next) {
+      description.animate('position', descriptionPosition, 200).queue(function (next) {
         temperaturePosition.y = 105;
-        temperature.animate('position', temperaturePosition, 100).queue(function (next) {
+        temperature.animate('position', temperaturePosition, 50).queue(function (next) {
           iconPosition.y = 28;
-          icon.animate('position', iconPosition, 100);
+          icon.animate('position', iconPosition, 50);
         });
       });
       iconShowing = !iconShowing;
     } else if (e.button === 'down' && iconShowing) {
       iconPosition.y = -128;
-      icon.animate('position', iconPosition, 100).queue(function (next) {
+      icon.animate('position', iconPosition, 50).queue(function (next) {
         temperaturePosition.y = -50;
-        temperature.animate('position', temperaturePosition, 400).queue(function (next) {
+        temperature.animate('position', temperaturePosition, 200).queue(function (next) {
           descriptionPosition.y = 2;
-          description.animate('position', descriptionPosition, 100);
+          description.animate('position', descriptionPosition, 50);
         });
       });
       iconShowing = !iconShowing;
