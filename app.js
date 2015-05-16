@@ -23,8 +23,6 @@ if (updateFrequency === undefined) {
   MOVELIMIT = updateFrequency.distance;
 }
 
-console.log('Frequency: ' + FETCHDELAY + ' | ' + MOVELIMIT);
-
 var moved = true;
 var weather;
 var directions = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
@@ -86,7 +84,6 @@ function displayErrorCard(error) {
 
 function hasMoved(coords, accuracy) {
   if (Math.abs(Number(localStorage.lat).toFixed(accuracy) - coords.latitude.toFixed(accuracy)) + Math.abs(Number(localStorage.lon).toFixed(accuracy) - coords.longitude.toFixed(accuracy)) > 0) {
-    console.log('Moved');
     localStorage.lat = coords.latitude;
     localStorage.lon = coords.longitude;
     return true;
@@ -99,7 +96,6 @@ navigator.geolocation.getCurrentPosition(
     if (localStorage.lat !== undefined && localStorage.lon !== undefined) {
       moved = hasMoved(pos.coords, MOVELIMIT);
     } else {
-      console.log('Lat Lon not in Local Storage');
       localStorage.lat = pos.coords.latitude;
       localStorage.lon = pos.coords.longitude;
     }
@@ -169,7 +165,6 @@ function fetchWeather() {
       }
     );
   } else {
-    console.log('Fetched recently or hasn\'t moved');
     weather = JSON.parse(localStorage.weather);
     main();
   }
@@ -184,12 +179,10 @@ function main() {
   splashWindow.hide();
   
   var iconShowing = true;
-  
   var icon = new UI.Image({
     position: new UI.Vector2(27, 28),
     size: new UI.Vector2(90, 70),
   });
-  console.log(weather.currently.icon);
   icon.image('images/' + weather.currently.icon + '.png');
   mainWindow.add(icon);
   
@@ -200,6 +193,7 @@ function main() {
     textAlign: 'center',
     font: 'bitham-42-light'
   });
+  
   if (FETCHDELAY === 0) {
     temperature.text(weather.currently.temperature + '°');
   } else {
@@ -228,6 +222,19 @@ function main() {
     scrollable: true,
     style: 'small'
   });
+  
+  var dailySummaryOptions = Settings.option('dailySummaryOptions');
+  var dailySummaryOptionsChecked = [];
+  if (dailySummaryOptions !== undefined) {
+    var dailySummaryOptionKeys = Object.keys(dailySummaryOptions);
+    for (var i in dailySummaryOptionKeys) {
+      if (dailySummaryOptions[dailySummaryOptionKeys[i]]) {
+        dailySummaryOptionsChecked.push(dailySummaryOptionKeys[i]);
+      }
+    }
+  }
+  
+  var dailyInfo = getDailyInfo(dailySummaryOptionsChecked);
   
   mainWindow.on('click', function (e) {
     var iconPosition = icon.position();
@@ -259,25 +266,9 @@ function main() {
     }
   });
   
-  var dailySummaryOptions = Settings.option('dailySummaryOptions');
-  var dailySummaryOptionsChecked = [];
-  if (dailySummaryOptions === undefined) {
-    dailySummaryOptionsChecked.push('temp');
-  } else {
-    var dailySummaryOptionKeys = Object.keys(dailySummaryOptions);
-    for (var i in dailySummaryOptionKeys) {
-      if (dailySummaryOptions[dailySummaryOptionKeys[i]]) {
-        dailySummaryOptionsChecked.push(dailySummaryOptionKeys[i]);
-      }
-    }
-  }
-  
-  console.log('Settings: ' + dailySummaryOptionsChecked);
-  
-  var dailyInfo = getDailyInfo(dailySummaryOptionsChecked);
-  
   dailyWeatherMenu.on('select', function (e) {
-    dailyInfoCard.body(dailyInfo[e.itemIndex]);
+    dailyInfoCard.title(e.item.title);
+    dailyInfoCard.body('\n' + dailyInfo[e.itemIndex]);
     dailyInfoCard.show();
     dailyWeatherMenu.hide();
   });
