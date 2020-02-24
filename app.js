@@ -148,7 +148,7 @@ function fetchWeather() {
   if (moved || localStorage.lastFetch === undefined || currentTime - localStorage.lastFetch > FETCHDELAY) {
     ajax(
       {
-        url: 'https://api.forecast.io/forecast/68f8c34082a9d39ed4c038a9ff4c22b1/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=hourly,minutely,flags',
+        url: 'https://api.forecast.io/forecast/YOUR_API_KEY/' + localStorage.lat + ',' + localStorage.lon + '?units=auto&exclude=hourly,minutely,flags',
         type: 'json',
         timeout: 5000
       },
