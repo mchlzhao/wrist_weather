@@ -1,6 +1,8 @@
-# wrist_weather
+# Wrist Weather
 
 ## Screenshots
+
+<img src="images/wrist_weather_screenshots.png" width=600/>
 
 ## About
 
